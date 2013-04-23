@@ -1,0 +1,140 @@
+
+/* Used by NavigationStyling */
+@namespace mx "library://ns.adobe.com/flex/mx";
+.myMapStyle
+{
+    navigation-style-name: myNavigationStyle;
+}
+
+.myNavigationStyle
+{
+    left: NaN;
+    top: 6;
+    right: 6;
+    navigation-slider-style-name: myNavigationSlider;
+}
+.myNavigationSlider
+{
+    dataTipPlacement: "left";
+    showScaleInDataTip: false;
+    tickColor: #FFFFFF;
+    tickLength: 10;
+    tickOffset: 13;
+    tickThickness: 3;
+    borderColor: #FFFFFF;
+    themeColor: haloSilver;
+    invertThumbDirection:true;
+    showTrackHighlight:true;
+}
+/* end NavigationStyling */
+
+.accHeader {
+    selectedFillColors: haloBlue, haloBlue;
+}
+
+.mypanelTitle {
+   color: #000000;
+   fontFamily: Verdana;
+   fontWeight: bold;
+   text-align: left;
+}
+
+.MainPanel {
+   layout: horizontal;
+   borderColor: #000000;
+   headerColors: #ACC9E1, #FFFFFF;
+   footerColors: #ACC9E1, #FFFFFF;
+   backgroundColor: #ACC9E1;
+   titleStyleName: "MainTitle";
+   width: 1000;
+   height: 700;  
+   borderStyle: solid;
+   cornerRadius: 20;
+   backgroundAlpha: .25;
+   borderAlpha: 1;
+   horizontalAlign: center;
+}
+
+.MainTitle {
+   color: #000000;
+   fontFamily: Verdana;
+   fontWeight: bold;
+   fontSize: 24pt;
+}
+
+.MapTitle {
+   color: #000000;
+   fontSize: 16pt;
+   fontFamily: Verdana;
+   fontWeight: bold;
+   text-align:center;
+}
+
+.StepPanel {
+   borderColor: #000000;
+   headerColors: #ACC9E1, #FFFFFF;
+   footerColors: #ACC9E1, #FFFFFF;
+   backgroundColor: #FFFFFF;
+   titleStyleName: "stepTitle";
+   text-align: left;
+}
+
+.stepTitle {
+   color: #000000;
+   fontsize: 12pt;
+   fontFamily: Verdana;
+   fontWeight: bold;
+}
+
+/* Following code is for the resizable panels */
+
+
+.mypanelTitle {
+	fontFamily: Arial;
+	fontSize: 12;
+	fontWeight: bold;
+	horizontal-align: center;
+	color: #000000;
+	background-color: #01445F;
+}
+.closeBtn {
+	upSkin:        Embed('/oitt_images/closeButton.png');
+	overSkin:      Embed('/oitt_images/closeButton.png');
+	downSkin:      Embed('/oitt_images/closeButton.png');
+	disabledSkin:  Embed('/oitt_images/closeButton.png');
+}
+.increaseBtn {
+	upSkin:        Embed('/oitt_images/increaseButton.png');
+	overSkin:      Embed('/oitt_images/increaseButton.png');
+	downSkin:      Embed('/oitt_images/increaseButton.png');
+	disabledSkin:  Embed('/oitt_images/increaseButton.png');
+}
+.decreaseBtn {
+	upSkin:        Embed('/oitt_images/decreaseButton.png');
+	overSkin:      Embed('/oitt_images/decreaseButton.png');
+	downSkin:      Embed('/oitt_images/decreaseButton.png');
+	disabledSkin:  Embed('/oitt_images/decreaseButton.png');
+}
+.minBtn {
+	upSkin:        Embed('/oitt_images/decreaseButton.png');
+	overSkin:      Embed('/oitt_images/decreaseButton.png');
+	downSkin:      Embed('/oitt_images/decreaseButton.png');
+	disabledSkin:  Embed('/oitt_images/decreaseButton.png');
+}
+.resizeHndlr {
+	upSkin:        Embed('/oitt_images/resizeHandler.png');
+	overSkin:      Embed('/oitt_images/resizeHandler.png');
+	downSkin:      Embed('/oitt_images/resizeHandler.png');
+	disabledSkin:  Embed('/oitt_images/resizeHandler.png');
+}
+
+.hyperlinkS {
+	color: #0024FF;
+	
+}
+.hyperlinkS:hover{
+	background-color: #FFFFCF;
+	text-decoration: underline;
+	
+}
+

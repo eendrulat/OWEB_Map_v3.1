@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Used by MapTips.mxml -->
+<mx:VBox 
+		xmlns:fx="http://ns.adobe.com/mxml/2009"
+		 xmlns:s="library://ns.adobe.com/flex/spark"
+		 xmlns:mx="library://ns.adobe.com/flex/mx"
+		 implements="mx.core.IToolTip"
+		width="320"
+		height="200"
+		 alpha="1"
+		 backgroundColor="0xCCCCCC"
+		 borderColor="0x0000FF"
+		 cornerRadius="10"
+		 mouseChildren="false"
+		 mouseEnabled="false">
+	
+	<!--dropped these parameters as they appear to be invalid:
+	backgroundColor="0xCCCCCC"
+	borderColor="0x0000FF"
+	cornerRadius="10"-->
+	
+	<fx:Script>
+		<![CDATA[
+			// required by IToolTip
+			public function get text():String
+			{
+				return null;
+			}
+			
+			public function set text(value:String):void
+			{
+			}
+			
+			[Bindable]public var projectName:String;
+			[Bindable]public var projectType:String;
+			[Bindable]public var projGrantee:String;
+			[Bindable]public var projectStart:String;
+			[Bindable]public var projectEnd:String;
+			[Bindable]public var projectSummary:String;
+			[Bindable]public var owriNBR:int;
+			
+	
+		]]>
+	</fx:Script>
+	
+	<fx:Declarations>
+		<mx:DateFormatter id="df" formatString="MMM D, YYYY"/>
+		<mx:NumberFormatter id="numberFormatter" useThousandsSeparator="true"/>
+	</fx:Declarations>
+	<!--{numberFormatter.format(population)}"-->
+	
+	<mx:Text text="{projectName}"  fontWeight="bold" fontSize="13" width="100%" color="#FFFFFF"/>
+	<!--<mx:TabNavigator width="100%" height="100%" >-->
+	<mx:Canvas label="Details" width="100%" height="100%" verticalScrollPolicy="auto" horizontalScrollPolicy="off">
+		<mx:VBox id="infowindowDetails" width="100%" height="100%" backgroundColor="#FFFFFF"
+				 borderColor="#A0A0A0" cornerRadius="10" paddingBottom="10" paddingLeft="10"
+				 paddingRight="10" paddingTop="10" verticalGap="5">
+			<mx:HBox width="100%">
+				<mx:Label text="Type: " fontWeight="bold"/>
+				<mx:Text text="{projectType}" fontSize="11" width="100%"/>
+			</mx:HBox>    		
+			<mx:HBox width="100%">
+				<mx:Label text="Grantee: " fontWeight="bold"/>
+				<mx:Text text="{projGrantee}" fontSize="11" width="100%"/>
+			</mx:HBox>    			    		
+			<mx:HBox width="100%">
+				<mx:VBox width="50%" verticalGap="0">
+					<mx:Label text="Start Date: " fontWeight="bold" textDecoration="underline"/>
+					<mx:Text text="{projectStart}" fontSize="10" width="100%">
+						
+					</mx:Text>
+				</mx:VBox> 
+				<mx:VBox width="50%" verticalGap="0">
+					<mx:Label text="End Date: " fontWeight="bold" textDecoration="underline"/>
+					<mx:Text text="{projectEnd}" fontSize="10" width="100%">
+					</mx:Text>
+				</mx:VBox>
+			</mx:HBox>
+			<mx:HBox width="100%">
+				<mx:Label text="Summary:" fontWeight="bold" textDecoration="underline"/>
+				<mx:Text id="projSummary" text="{projectSummary}" visible="{projectSummary.length >1}" includeInLayout="{projectSummary.length >1}"  fontSize="10" width="100%"/>
+				<!--	    			<mx:Text text="The project summary is not available at this time." visible="{projectSummary==null}" includeInLayout="{projectSummary.valueOf()==null}" fontSize="10" width="100%" />-->
+			</mx:HBox>
+			
+			<mx:HBox width="100%">
+				<mx:Button label="Detailed project information" visible="{owriNBR != 0}"
+						   click="navigateToURL(new URLRequest('http://oe.oregonexplorer.info/RestorationTool/FullReport.aspx?projnum=' + owriNBR),'_blank')"/>
+				<!--<mx:Label text="OWRI Project Number: {owriNBR}" visible="{owriNBR != 0}" />-->
+			</mx:HBox>
+		</mx:VBox>
+	</mx:Canvas>
+</mx:VBox>
+
+

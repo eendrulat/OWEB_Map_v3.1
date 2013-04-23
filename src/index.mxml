@@ -1,0 +1,901 @@
+<!--  OWEB Restoration Project Mapping Application
+	  Files:  oitt.mxml
+      Author: Erik Endrulat, State of Oregon, DAS - EISPD Geospatial Enterprise Office
+		955 Center St. NE, Room 470 | Salem, OR 97301
+		erik.endrulat@state.or.us | 503-378-2781
+	  Original Date:   April 2010, last updated December 2012
+	  
+	  Purpose: This objective of this application is to provide a general viewer for OWEB projects and associated
+	  	base data. Offers ability to identify and query data.
+-->
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+			   xmlns:s="library://ns.adobe.com/flex/spark"
+			   xmlns:mx="library://ns.adobe.com/flex/mx"
+			   xmlns:esri="http://www.esri.com/2008/ags"
+			   xmlns:ext="com.ext.*" 
+			   xmlns:text="flash.text.*"
+			   pageTitle="OWEB Investment Tracking Tool" height="100%">
+	
+	<fx:Style source="/style/Styles.css"/>
+	
+<fx:Script source="owebMap.as"/>
+
+<!-- Start Declarations -->
+<fx:Declarations>
+	<!-- Here are some bells & whistles -->
+	<mx:DateFormatter id="dateFormatter" formatString="MMM D, YYYY"/>
+
+	<!-- Text mouseover effects -->
+	<mx:Glow  id="glow" alphaFrom="0" alphaTo="1"
+			  blurXFrom="0.0" blurXTo="5.0"
+			  blurYFrom="0.0" blurYTo="5.0"  strength="2"
+			  color="0xCC0000"/>
+	<mx:Glow id="unglow" duration="800"  
+			 alphaFrom="1" alphaTo="0"
+			 blurXFrom="5.0" blurXTo="0.0"
+			 blurYFrom="5.0" blurYTo="0.0"  strength="2"
+			 color="0xCC0000" />
+    
+	<s:Fade id="fadeEffect" target="{screenPanel}" duration="750" alphaFrom="1" alphaTo="0"/>
+    
+	
+	<!-- Query Task: display all project locations-->
+    <esri:QueryTask
+        id="queryTaskProjects"
+        url="http://navigator.state.or.us/ArcGIS/rest/services/Projects/OWEB/MapServer/0"
+		useAMF="false"/>
+	
+    <esri:Query
+        id="queryProjects"
+        returnGeometry="true"
+        outFields='*'
+        outSpatialReference="{map.spatialReference}"/>
+        
+    <esri:SimpleMarkerSymbol id="projAcquisition" size="10" color="0x84306b" style="circle" alpha="{alpha_LyrProjType.value}">
+    	 <esri:SimpleLineSymbol color="0x000000" width="1"/>
+    </esri:SimpleMarkerSymbol>
+    <esri:SimpleMarkerSymbol id="projAssessment" size="10" color="0x52f78c" style="circle" alpha="{alpha_LyrProjType.value}">
+    	 <esri:SimpleLineSymbol color="0x000000" width="1"/>
+    </esri:SimpleMarkerSymbol>
+    <esri:SimpleMarkerSymbol id="projCouncil" size="10" color="0xbd8a42" style="circle" alpha="{alpha_LyrProjType.value}">
+    	 <esri:SimpleLineSymbol color="0x000000" width="1"/>
+    </esri:SimpleMarkerSymbol>
+    <esri:SimpleMarkerSymbol id="projEducation" size="10" color="0x6bbede" style="circle" alpha="{alpha_LyrProjType.value}">
+    	 <esri:SimpleLineSymbol color="0x000000" width="1"/>
+    </esri:SimpleMarkerSymbol>
+    <esri:SimpleMarkerSymbol id="projMonitoring" size="10" color="0xff595a" style="circle" alpha="{alpha_LyrProjType.value}">
+    	 <esri:SimpleLineSymbol color="0x000000" width="1"/>
+	</esri:SimpleMarkerSymbol>
+	<esri:SimpleMarkerSymbol id="projOutreach" size="10" color="0x37a800" style="circle" alpha="{alpha_LyrProjType.value}">
+		<esri:SimpleLineSymbol color="0x000000" width="1"/>		
+    </esri:SimpleMarkerSymbol>
+    <esri:SimpleMarkerSymbol id="projResearch" size="10" color="0x7b55ff" style="circle" alpha="{alpha_LyrProjType.value}">
+    	 <esri:SimpleLineSymbol color="0x000000" width="1"/>
+    </esri:SimpleMarkerSymbol>
+    <esri:SimpleMarkerSymbol id="projRestoration" size="10" color="0x4a824a" style="circle" alpha="{alpha_LyrProjType.value}">
+    	 <esri:SimpleLineSymbol color="0x000000" width="1"/>
+    </esri:SimpleMarkerSymbol>
+    <esri:SimpleMarkerSymbol id="projTA" size="10" color="0xcee363" style="circle" alpha="{alpha_LyrProjType.value}">
+    	 <esri:SimpleLineSymbol color="0x000000" width="1"/>
+    </esri:SimpleMarkerSymbol>
+
+    <esri:SimpleMarkerSymbol id="tinySym" size="6" color="0xFF0000"/>
+    <esri:SimpleMarkerSymbol id="smallSym" size="12" color="0xFF0000"/>
+    <esri:SimpleMarkerSymbol id="mediumSym" size="18" color="0xFF0000"/>
+    <esri:SimpleMarkerSymbol id="largeSym" size="24" color="0xFF0000"/>
+    	    
+    <esri:SimpleMarkerSymbol id="highlightedSymbol" style="circle" color="0xFFFF33" />
+   	<esri:SimpleFillSymbol id="yellowFill" color="0xFFFF33" alpha="1"/>
+
+	<!-- Query Task: display HUC4-->
+    <esri:QueryTask
+        id="queryTaskHUC4"
+        url="http://navigator.state.or.us/ArcGIS/rest/services/Projects/OWEB/MapServer/10"
+        useAMF="true"
+		executeComplete="onHUCQueryResult(event)"/>
+    
+    <esri:Query
+        id="queryHUC"
+        outFields="HU_8_NAME"
+        returnGeometry="true" 
+ 		spatialRelationship="esriSpatialRelIntersects"        
+ 		outSpatialReference="{map.spatialReference}"
+		maxAllowableOffset="1000"/>
+
+    <!-- Query Task: filter by Counties -->
+    <esri:QueryTask 
+    	id="queryTaskCounties"
+        url="http://navigator.state.or.us/ArcGIS/rest/services/BaseMaps/BaseMap_Streets_WM/MapServer/21"
+		useAMF="true"
+		executeComplete="countyQueryComplete(event)"/>
+    
+    <esri:Query id="queryCounty" returnGeometry="true" maxAllowableOffset="1000" outSpatialReference="{map.spatialReference}">
+        <esri:outFields>
+            <fx:String>NAME</fx:String>
+        </esri:outFields>
+    </esri:Query>
+	
+    <esri:SimpleFillSymbol id="clickSymbol" color="0xFFA500" outline="{borderSymbol}" alpha=".1"/>
+    <esri:SimpleLineSymbol id="borderSymbol" color="0xFF4200" width="2" style="dash" /> 
+
+	<!-- Query Task: filter by Senate Districts -->
+	<esri:QueryTask 
+		id="queryTaskSD"
+		url="http://navigator.state.or.us/ArcGIS/rest/services/Projects/LegisAdmin_DistrictMap/MapServer/4"
+		useAMF="true"
+		executeComplete="SDQueryComplete(event)"/>
+	
+	<!--http://navigator.state.or.us/ArcGIS/rest/services/Framework/Admin_Bounds_WM/MapServer/5
+	outFields="admin_senate_districts.District_N"-->
+	
+	<esri:Query
+		id="querySD"
+		outFields="District_N"
+		returnGeometry="true" 
+		spatialRelationship="esriSpatialRelIntersects"        
+		outSpatialReference="{map.spatialReference}"
+		maxAllowableOffset="1000"/>
+	
+	<!-- Query Task: filter by House Districts -->
+	<esri:QueryTask 
+		id="queryTaskHD"
+		url="http://navigator.state.or.us/ArcGIS/rest/services/Projects/LegisAdmin_DistrictMap/MapServer/3"
+		useAMF="true"
+		executeComplete="HDQueryComplete(event)"/>
+	
+	<esri:Query id="queryHD" returnGeometry="true" maxAllowableOffset="1000" outSpatialReference="{map.spatialReference}">
+		<esri:outFields>
+			<fx:String>District_N</fx:String>
+		</esri:outFields>
+	</esri:Query>
+	
+  	<!-- Geo-Locate Task -->
+	<esri:Locator id="locator"
+				  outSpatialReference="{map.spatialReference}"
+				  url="http://tasks.arcgisonline.com/ArcGIS/rest/services/Locators/TA_Address_NA_10/GeocodeServer"/>
+    <esri:PictureMarkerSymbol id="addressSymbol" source="oitt_images/thumbtack.png" />
+
+	<esri:NavigationTool id="navTool" map="{map}"/>
+                
+<!-- Currency formatter -->
+<mx:CurrencyFormatter id="currency" precision="0" 
+    rounding="nearest"
+    useThousandsSeparator="true"
+    alignSymbol="left"/>
+
+</fx:Declarations>
+
+	<!-- Begin Page layout -->
+	
+	<mx:Canvas id = "outerCanvas" 
+   		width="100%" height="100%" 
+		horizontalScrollPolicy="off"
+		verticalScrollPolicy="off">
+		
+		<mx:VBox width="100%" height="100%">		    
+			<mx:HDividedBox width="100%" height="100%" horizontalGap="5">
+			
+					<mx:VBox id="mapContainer" width="100%" height="100%" verticalGap="0">
+				    	
+					    <mx:HBox id="mapTitle" top="5" backgroundColor="#FFFFFF" borderStyle="solid" paddingLeft="5" paddingRight="5" paddingTop="2" paddingBottom="2" width="100%" backgroundAlpha="0.8" verticalAlign="middle" height="40">
+						    <mx:Text text="OWEB Investment Tracking Tool" fontWeight="bold" fontSize="20" fontFamily="Verdana" paddingLeft="5" click="popupBox.visible=true; popupBox.includeInLayout=true" rollOverEffect="{glow}" rollOutEffect="{unglow}"/>
+						    <mx:HBox width="100%" horizontalAlign="right">
+						    	
+						    	<mx:Button id="button_basemap" label="Basemap" click="{bb.visible=true;button_basemap.emphasized=true}" emphasized="false" icon="@Embed(source='oitt_images/basemap.png')" height="25" fontWeight="bold" fontSize="10"/>
+						    	<mx:VRule height="25"/>
+						    	<mx:Button label="Zoom to State" color="#2A5ABA" icon="@Embed(source='oitt_images/stateThumb.png')" height="25" click="zoomFull();"/>
+						    	
+								<mx:ToggleButtonBar id="tbb"
+													creationComplete="tbb.selectedIndex = -1"
+													valueCommit="if (tbb.selectedIndex == -1) { navTool.deactivate() }"
+													itemClick="itemClickHandler(event)"
+													toggleOnClick="true"  buttonMode="true" height="20" fontFamily="Arial" fontSize="11" fontStyle="normal" fontWeight="normal" textDecoration="none"
+													toolTip="Zoom in to area of interest; left-click and drag mouse to draw zoom area" >
+									<mx:dataProvider>
+										
+										<fx:Array>
+											<fx:Object id="zoom_in" icon="@Embed(source='oitt_images/zoom_in.png')"/>
+											<fx:Object id="zoom_out" icon="@Embed(source='oitt_images/zoom_out.png')"/>
+											<fx:Object id="pan" icon="@Embed(source='oitt_images/pan.png')"/>
+										</fx:Array>
+									</mx:dataProvider>
+								</mx:ToggleButtonBar>
+								
+								<mx:Button click="navTool.zoomToPrevExtent()"
+										   enabled="{!navTool.isFirstExtent}"
+										   toolTip="Zoom to previous extent"
+										   icon="@Embed(source='oitt_images/back.png')"
+										   height="20" width="30"/>
+								<mx:Button click="navTool.zoomToNextExtent()"
+										   enabled="{!navTool.isLastExtent}"
+										   toolTip="Zoom to next extent"
+										   icon="@Embed(source='oitt_images/forward.png')"
+										   height="20" width="30"/>
+								<mx:Spacer width="5"/>
+								<mx:Button id="help" 
+										   click="popupBox.visible=true" 
+										   icon="@Embed(source='oitt_images/about.png')"  
+										   toolTip="About this map"
+										   height="20" width="20"/>
+						    </mx:HBox>
+					    </mx:HBox>	
+					    
+					    <esri:Map id="map" 
+					    	styleName="myMapStyle"
+					    	openHandCursorVisible="false"
+					    	width="100%" height="100%"  
+					    	logoVisible="false"
+					    	extentChange="onExtentChange(event)"
+					    	initialize="init(event)" creationComplete="doneInit(event)">
+
+					        <esri:lods>
+					            <esri:LOD resolution="2445.98490512499" scale="9244648.868618"/>
+					            <esri:LOD resolution="1222.99245256249" scale="4622324.434309"/>
+					            <esri:LOD resolution="611.49622628138" scale="2311162.217155"/>
+					            <esri:LOD resolution="305.748113140558" scale="1155581.108577"/>
+					            <esri:LOD resolution="152.874056570411" scale="577790.554289"/>
+					            <esri:LOD resolution="76.4370282850732" scale="288895.277144"/>
+					            <esri:LOD resolution="38.2185141425366" scale="144447.638572"/>
+					            <esri:LOD resolution="19.1092570712683" scale="72223.819286"/>
+								<esri:LOD resolution="9.55462853563415" scale="36111.909643"/>
+								<esri:LOD resolution="4.77731426794937" scale="18055.954822"/>								            								            
+								<esri:LOD resolution="2.38865713397468" scale="9027.977411"/>
+								<esri:LOD resolution="1.19432856685505" scale="4513.988705"/>
+								<esri:LOD resolution="0.597164283559817" scale="2256.994353"/>
+								<esri:LOD resolution="0.298582141647617" scale="1128.497176 "/>								
+					        </esri:lods>	
+					        
+					    	<esri:extent>
+						    	<esri:Extent xmin="-13915490" ymin="5030830" xmax="-12941380" ymax="5884480">
+						    		<esri:SpatialReference wkid="102100"/>
+								</esri:Extent>
+					    	</esri:extent>
+					    	
+					        <esri:ArcGISTiledMapServiceLayer
+					            visible="{bb.selectedIndex == 1}"
+					            url="http://services.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer" />
+					        <esri:ArcGISTiledMapServiceLayer
+					            visible="{bb.selectedIndex == 2}"
+					            url="http://services.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer" />
+					        <esri:ArcGISTiledMapServiceLayer
+					            visible="{bb.selectedIndex == 0}"
+					            url="http://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer" />
+					       	
+					        <!--<esri:ArcGISDynamicMapServiceLayer id="baseLayers" 
+					        	url="http://navigator.state.or.us/ArcGIS/rest/services/Projects/OWEB/MapServer"
+					   			alpha=".6"/> -->    	
+					   			
+							<esri:ArcGISDynamicMapServiceLayer id="layerCounties"
+								url="http://navigator.state.or.us/ArcGIS/rest/services/Projects/OWEB/MapServer"
+								visible="{chk_LyrCountyBound.selected}"
+								alpha="{alpha_LyrCounty.value}">
+					   			<esri:visibleLayers>
+									<mx:ArrayCollection>
+										<fx:Number>3</fx:Number><!--County Boundaries-->
+									</mx:ArrayCollection>
+								</esri:visibleLayers>								
+							</esri:ArcGISDynamicMapServiceLayer>
+							
+							<esri:ArcGISDynamicMapServiceLayer id="layerSDs"
+															   url="http://navigator.state.or.us/ArcGIS/rest/services/Framework/Admin_Bounds_WM/MapServer"
+															   visible="{chk_LyrSDBound.selected}"
+															   alpha="{alpha_LyrSD.value}">
+								<esri:visibleLayers>
+									<mx:ArrayCollection>
+										<fx:Number>5</fx:Number><!--SD Boundaries-->
+									</mx:ArrayCollection>
+								</esri:visibleLayers>								
+							</esri:ArcGISDynamicMapServiceLayer>
+							
+							<esri:ArcGISDynamicMapServiceLayer id="layerHDs"
+															   url="http://navigator.state.or.us/ArcGIS/rest/services/Framework/Admin_Bounds_WM/MapServer"
+															   visible="{chk_LyrHDBound.selected}"
+															   alpha="{alpha_LyrHD.value}">
+								<esri:visibleLayers>
+									<mx:ArrayCollection>
+										<fx:Number>4</fx:Number><!--HD Boundaries-->
+									</mx:ArrayCollection>
+								</esri:visibleLayers>								
+							</esri:ArcGISDynamicMapServiceLayer>
+							<esri:ArcGISDynamicMapServiceLayer id="layerWatershedBounds"
+								url="http://navigator.state.or.us/ArcGIS/rest/services/Projects/OWEB/MapServer"
+								visible="{chk_LyrWatershedBounds.selected}"
+								alpha="{alpha_LyrWatershedBounds.value}">
+					   			<esri:visibleLayers>
+									<mx:ArrayCollection>
+										<fx:Number>8</fx:Number><!--Watershed Boundaries-->
+										<fx:Number>9</fx:Number><!--Watershed Boundaries-->
+										<fx:Number>10</fx:Number><!--Watershed Boundaries-->
+										<fx:Number>11</fx:Number><!--Watershed Boundaries-->
+										<fx:Number>12</fx:Number><!--Watershed Boundaries-->
+									</mx:ArrayCollection>
+								</esri:visibleLayers>								
+							</esri:ArcGISDynamicMapServiceLayer>
+					
+							<esri:ArcGISDynamicMapServiceLayer id="layerSGAs"
+															   url="http://navigator.state.or.us/ArcGIS/rest/services/Projects/OWEB/MapServer"
+															   visible="{chk_LyrSmallGrants.selected}"
+															   alpha="{alpha_LyrSmallGrants.value}">
+								<esri:visibleLayers>
+									<mx:ArrayCollection>
+										<fx:Number>15</fx:Number><!--Small Grant Areas-->
+									</mx:ArrayCollection>
+								</esri:visibleLayers>								
+							</esri:ArcGISDynamicMapServiceLayer>
+							
+							<esri:ArcGISDynamicMapServiceLayer id="layerRegions"
+															   url="http://navigator.state.or.us/ArcGIS/rest/services/Projects/OWEB/MapServer"
+															   visible="{chk_LyrRegions.selected}"
+															   alpha="{alpha_LyrRegions.value}">
+								<esri:visibleLayers>
+									<mx:ArrayCollection>
+										<fx:Number>14</fx:Number><!--OWEB Regions-->
+									</mx:ArrayCollection>
+								</esri:visibleLayers>								
+							</esri:ArcGISDynamicMapServiceLayer>
+							
+							<esri:ArcGISDynamicMapServiceLayer id="layerWSCs"
+								url="http://navigator.state.or.us/ArcGIS/rest/services/Projects/OWEB/MapServer"
+								visible="{chk_LyrWatershedCouncils.selected}"
+								alpha="{alpha_LyrWatershedCouncils.value}">
+					   			<esri:visibleLayers>
+									<mx:ArrayCollection>
+										<fx:Number>2</fx:Number><!--WSC Boundaries-->
+									</mx:ArrayCollection>
+								</esri:visibleLayers>								
+							</esri:ArcGISDynamicMapServiceLayer>
+
+							<esri:ArcGISDynamicMapServiceLayer id="layerWatershedFunding" 
+					        	url="http://navigator.state.or.us/ArcGIS/rest/services/Projects/OWEB/MapServer"
+					   			visible="{chk_LyrWSFunding.selected}"
+					   			alpha="{alpha_LyrWSFunding.value}">
+					   			<esri:visibleLayers>
+									<mx:ArrayCollection>
+										<fx:Number>13</fx:Number><!--Watershed Boundaries-->
+									</mx:ArrayCollection>
+								</esri:visibleLayers>	     	
+					   		</esri:ArcGISDynamicMapServiceLayer>
+					   		
+							<!-- removed: visible="{chk_LyrProjType.selected}" -->
+							<esri:ArcGISDynamicMapServiceLayer id="layerProjType_dyn"
+								url="http://navigator.state.or.us/ArcGIS/rest/services/Projects/OWEB/MapServer"
+								alpha="{alpha_LyrProjType.value}"
+								visible="{layerProjTypeDyn_Vis}">
+					   			<esri:visibleLayers>
+									<mx:ArrayCollection>
+										<fx:Number>0</fx:Number><!--Project Type-->
+									</mx:ArrayCollection>
+								</esri:visibleLayers>								
+							</esri:ArcGISDynamicMapServiceLayer>
+							
+							<!-- visible="{chk_LyrProjAward.selected}"  -->
+							<esri:ArcGISDynamicMapServiceLayer id="layerProjAward_dyn"
+								url="http://navigator.state.or.us/ArcGIS/rest/services/Projects/OWEB/MapServer"
+								alpha="{alpha_LyrProjAward.value}"
+								visible="{layerProjAwardDyn_Vis}">
+					   			<esri:visibleLayers>
+									<mx:ArrayCollection>
+										<fx:Number>1</fx:Number>
+									</mx:ArrayCollection>
+								</esri:visibleLayers>								
+							</esri:ArcGISDynamicMapServiceLayer>
+
+							<esri:ArcGISDynamicMapServiceLayer id="layer_Mask"
+								url="http://navigator.state.or.us/ArcGIS/rest/services/Projects/OWEB/MapServer"
+								alpha=".4">
+					   			<esri:visibleLayers>
+									<mx:ArrayCollection>
+										<fx:Number>5</fx:Number><!-- Boundaries-->
+										<fx:Number>6</fx:Number><!-- Boundaries-->									</mx:ArrayCollection>
+								</esri:visibleLayers>								
+							</esri:ArcGISDynamicMapServiceLayer>
+							
+							<esri:GraphicsLayer id="countyBounds" /> <!--Displayed when county is selected-->
+							<esri:GraphicsLayer id="hucBounds" /> <!--Displayed when huc is selected-->
+							<esri:GraphicsLayer id="sdBounds" /> <!--Displayed when senate districts are selected-->
+							<esri:GraphicsLayer id="hdBounds" /> <!--Displayed when hosue districts are is selected-->
+							
+							<esri:GraphicsLayer id="myAddressPoint" /> <!--Displayed when address point is returned-->
+							<!--<esri:GraphicsLayer id="myGraphicsLayer"/> Displayed when county is selected-->
+							<esri:GraphicsLayer id="identFeatureLayer"/>
+							<esri:GraphicsLayer id="layerProjType" visible="{chk_LyrProjType.selected}"/>
+					        
+					        <esri:GraphicsLayer id="layerProjAward" visible="{chk_LyrProjAward.selected}" alpha="{alpha_LyrProjAward.value}">
+					            <esri:renderer>
+					                <esri:ClassBreaksRenderer field="FundedAmount">
+					                    <esri:ClassBreakInfo minValue="1000000" symbol="{largeSym}"/>
+					                    <esri:ClassBreakInfo minValue="250000" maxValue="1000000" symbol="{mediumSym}"/>
+					                    <esri:ClassBreakInfo minValue="50000" maxValue="250000" symbol="{smallSym}"/>
+					                    <esri:ClassBreakInfo minValue="0" symbol="{tinySym}"/>
+					                </esri:ClassBreaksRenderer>
+					            </esri:renderer>
+					        </esri:GraphicsLayer>									
+							
+					    </esri:Map>
+    
+					</mx:VBox>
+		</mx:HDividedBox>
+		
+		<!--Map Footer -->
+    	<mx:HDividedBox width="100%" height="150" id="statPanel" verticalScrollPolicy="off" horizontalGap="4">
+    		<mx:DataGrid id="dg" width="100%" height="100%"
+    			itemRollOver="onItemRollOver(event)" 
+    			itemClick="onItemClick(event)" sortableColumns="true"  > 
+    			<mx:columns>
+    				<mx:DataGridColumn headerText="Grant Type" dataField="ProjectType" width="36" dataTipField="ApplicationNbr_ToolTip" showDataTips="true"/>
+    				<mx:DataGridColumn headerText="Project Name" dataField="ProjectName" width="103" dataTipField="ApplicationNbr_ToolTip" showDataTips="true"/>
+					<mx:DataGridColumn headerText="OWEB Funding" dataField="FundedAmount" width="32" dataTipField="ApplicationNbr_ToolTip" showDataTips="true">
+					<mx:itemRenderer>
+						<fx:Component>
+							<mx:Label text="{outerDocument.currency.format(data.FundedAmount)}"/>
+						</fx:Component>
+					</mx:itemRenderer>
+					</mx:DataGridColumn>
+					<mx:DataGridColumn headerText="Fed. Funding" dataField="FederalFunds" width="32" dataTipField="ApplicationNbr_ToolTip" showDataTips="true">
+						<mx:itemRenderer>
+							<fx:Component>
+								<mx:Label text="{outerDocument.currency.format(data.FederalFunds)}"/>
+							</fx:Component>
+						</mx:itemRenderer>
+					</mx:DataGridColumn>
+    				<mx:DataGridColumn headerText="Start Year" dataField="YearStart" width="25" dataTipField="ApplicationNbr_ToolTip" showDataTips="true"/>
+    				<mx:DataGridColumn headerText="End Year" dataField="YearEnd" width="24" dataTipField="ApplicationNbr_ToolTip" showDataTips="true"/>
+    				<mx:DataGridColumn headerText="Grant Recipient" dataField="Grantee" width="60" dataTipField="ApplicationNbr_ToolTip" showDataTips="true"/>
+    				<mx:DataGridColumn headerText="Project Status" dataField="Status" width="33" dataTipField="ApplicationNbr_ToolTip" showDataTips="true"/>
+					<mx:DataGridColumn headerText="Grant Application #" dataField="ApplicationNbr" width="43" dataTipField="ApplicationNbr_ToolTip" showDataTips="true"/>
+					<mx:DataGridColumn headerText="Project Summary" dataField="Summary" width="0" />
+    			</mx:columns>
+    		</mx:DataGrid>									
+    	</mx:HDividedBox>		
+	</mx:VBox>	
+
+	<mx:VBox id="ToolPanel" verticalAlign="top" top="50" horizontalScrollPolicy="off" verticalScrollPolicy="off" height="865">
+		
+		<!-- Left Panel:  Manage Layers-->
+			<mx:VBox id="mapLayersParent" width="200">
+				<mx:Button id="mapLayersButton" label="Map Layers" fontSize="12" width="175" icon="@Embed(source='oitt_images/mapLayers.png')"
+					toggle="true" selected="true" height="30" textAlign="left" click="projSearchButton.selected=false;mapFilterButton.selected=false;"/>
+				<mx:Canvas id="mapLayersBox" width="190" height="100%" includeInLayout="{mapLayersButton.selected}" cornerRadius="10" borderStyle="solid" visible="{mapLayersButton.selected}">
+					<mx:VBox width="100%" height="220" horizontalAlign="left" paddingLeft="5"
+						backgroundColor="#FFFFFF" backgroundAlpha=".8" borderColor="#C5C5C5" cornerRadius="10" borderStyle="solid"
+						visible="true" includeInLayout="true" horizontalScrollPolicy="off" verticalScrollPolicy="auto"
+						paddingBottom="5" paddingRight="5" paddingTop="5" verticalGap="0">
+						
+						<mx:Spacer height="5" />
+						<mx:HBox width="100%" backgroundColor="#B6CFE1">
+							<mx:Label text="Project Layers:"  fontFamily="Arial" fontSize="12" fontWeight="bold"/>
+						</mx:HBox>
+						
+						<mx:VBox width="100%">
+							<mx:CheckBox label="Projects by Grant Type" id="chk_LyrProjType" change="chk_LyrProjAward.selected=false;doProjectQuery();"  fontSize="11" selected="true"/>							
+							<mx:VBox includeInLayout="{chk_LyrProjType.selected}" visible="{chk_LyrProjType.selected}" >
+								<mx:HBox height="100%" width="100%" verticalAlign="middle" horizontalAlign="center">
+									<mx:Image source="oitt_images/projType_thumb.png" alpha="{alpha_LyrProjType.value}" click="{legend_ProjType.visible=true; legend_ProjType.includeInLayout=true;}"/>
+									<mx:HSlider id="alpha_LyrProjType" maximum="1" minimum="0" liveDragging="true" value="1" labels="['Off','Full']" tickInterval=".2" toolTip="Set Layer Transparency" width="100" height="20"/>
+								</mx:HBox>
+								<mx:HBox id="legend_ProjType" visible="false" includeInLayout="false">
+									<mx:Image source="oitt_images/legend_Type.png" />
+									<mx:Button click="{legend_ProjType.visible=false; legend_ProjType.includeInLayout=false;}" width="24" icon="@Embed(source='oitt_images/close.png')"/>
+								</mx:HBox>
+							</mx:VBox>
+						</mx:VBox>
+						
+						<mx:VBox width="100%">
+							<mx:CheckBox label="Projects by Award $" id="chk_LyrProjAward" change="chk_LyrProjType.selected=false;doProjectQuery();" fontSize="11"/>
+							<mx:VBox includeInLayout="{chk_LyrProjAward.selected}" visible="{chk_LyrProjAward.selected}">
+								<mx:HBox height="100%" width="100%" verticalAlign="middle" horizontalAlign="center">
+									<mx:Image source="oitt_images/projAward_thumb.png" alpha="{alpha_LyrProjAward.value}" click="{legend_ProjAward.visible=true; legend_ProjAward.includeInLayout=true;}"/>
+									<mx:HSlider id="alpha_LyrProjAward" maximum="1" minimum="0" liveDragging="true" value=".6" labels="['Off','Full']" tickValues=".2" toolTip="Move slider to adjust layer transparency" width="100" height="20"/>
+								</mx:HBox>
+								<mx:HBox id="legend_ProjAward" visible="false" includeInLayout="false">
+									<mx:Image source="oitt_images/legend_Cost.png" />
+									<mx:Button click="{legend_ProjAward.visible=false; legend_ProjAward.includeInLayout=false;}" width="24" icon="@Embed(source='oitt_images/close.png')"/>
+								</mx:HBox>									
+							</mx:VBox>
+						</mx:VBox>
+						
+						<mx:VBox width="100%">
+							<mx:CheckBox label="Funding by Watershed" id="chk_LyrWSFunding" fontSize="11"/>
+							<mx:VBox includeInLayout="{chk_LyrWSFunding.selected}" visible="{chk_LyrWSFunding.selected}">
+								<mx:HBox height="100%" width="100%" verticalAlign="middle" horizontalAlign="center">
+									<mx:HBox width="100%" horizontalGap="1">
+										<mx:Image source="oitt_images/legend_WSFunding2.png" alpha="{alpha_LyrWSFunding.value}" width="30" height="63"/>
+										<mx:VBox width="100%" height="100%">
+											<mx:Label text="$1 M"/>
+											<mx:Label/>
+											<mx:Label text="$14 M"/>
+										</mx:VBox>
+									</mx:HBox>
+									<mx:HSlider id="alpha_LyrWSFunding" maximum="1" minimum="0" liveDragging="true" value=".6" labels="['Off','Full']" tickValues=".2" toolTip="Move slider to adjust layer transparency" width="70" height="20"/>
+								</mx:HBox>
+							</mx:VBox>
+						</mx:VBox>
+													
+						<mx:Spacer height="5" />
+						<mx:HBox width="100%" backgroundColor="#B6CFE1">
+							<mx:Label text="Boundaries:"  fontFamily="Arial" fontSize="12" fontWeight="bold"/>
+						</mx:HBox>
+						
+						<mx:Box width="100%">
+							<mx:CheckBox label="County Boundaries" id="chk_LyrCountyBound" fontSize="11"/>
+							<mx:HBox height="100%" width="100%" includeInLayout="{chk_LyrCountyBound.selected}" visible="{chk_LyrCountyBound.selected}"  verticalAlign="middle" horizontalAlign="center">
+								<mx:Image source="oitt_images/county_thumb.png" alpha="{alpha_LyrCounty.value}"/>
+								<mx:HSlider id="alpha_LyrCounty" maximum="1" minimum="0" value=".6" liveDragging="true" labels="['Off','Full']" tickValues=".2" toolTip="Move slider to adjust layer transparency" width="100" height="20"/>
+							</mx:HBox>
+						</mx:Box>
+						
+						<mx:Box width="100%">
+							<mx:CheckBox label="Senate Districts" id="chk_LyrSDBound" fontSize="11"/>
+							<mx:HBox height="100%" width="100%" includeInLayout="{chk_LyrSDBound.selected}" visible="{chk_LyrSDBound.selected}"  verticalAlign="middle" horizontalAlign="center">
+								<mx:Image source="oitt_images/county_thumb.png" alpha="{alpha_LyrCounty.value}"/>
+								<mx:HSlider id="alpha_LyrSD" maximum="1" minimum="0" value=".6" liveDragging="true" labels="['Off','Full']" tickValues=".2" toolTip="Move slider to adjust layer transparency" width="100" height="20"/>
+							</mx:HBox>
+						</mx:Box>
+						
+						<mx:Box width="100%">
+							<mx:CheckBox label="House Districts" id="chk_LyrHDBound" fontSize="11"/>
+							<mx:HBox height="100%" width="100%" includeInLayout="{chk_LyrHDBound.selected}" visible="{chk_LyrHDBound.selected}"  verticalAlign="middle" horizontalAlign="center">
+								<mx:Image source="oitt_images/county_thumb.png" alpha="{alpha_LyrCounty.value}"/>
+								<mx:HSlider id="alpha_LyrHD" maximum="1" minimum="0" value=".6" liveDragging="true" labels="['Off','Full']" tickValues=".2" toolTip="Move slider to adjust layer transparency" width="100" height="20"/>
+							</mx:HBox>
+						</mx:Box>
+						
+						<mx:Box width="100%">
+							<mx:CheckBox label="Watershed Councils" id="chk_LyrWatershedCouncils" fontSize="11"/>							
+							<mx:HBox height="100%" width="100%" includeInLayout="{chk_LyrWatershedCouncils.selected}" visible="{chk_LyrWatershedCouncils.selected}"  verticalAlign="middle" horizontalAlign="center">
+								<mx:Image source="oitt_images/wsc_thumb.png" alpha="{alpha_LyrWatershedCouncils.value}"/>
+								<mx:HSlider id="alpha_LyrWatershedCouncils" maximum="1" minimum="0" value=".6" liveDragging="true" labels="['Off','Full']" tickValues=".2" toolTip="Move slider to adjust layer transparency" width="100" height="20"/>
+							</mx:HBox>
+						</mx:Box>
+													
+						<mx:Box width="100%">						
+							<mx:CheckBox label="Watershed Boundaries" id="chk_LyrWatershedBounds"  fontSize="11"/>
+							<mx:HBox height="100%" width="100%" includeInLayout="{chk_LyrWatershedBounds.selected}" visible="{chk_LyrWatershedBounds.selected}" verticalAlign="middle" horizontalAlign="center">
+								<mx:Image source="oitt_images/watershed_thumb.png" alpha="{alpha_LyrWatershedBounds.value}"/>
+								<mx:HSlider id="alpha_LyrWatershedBounds" maximum="1" minimum="0" value=".6" liveDragging="true" labels="['Off','Full']" tickValues=".2" toolTip="Move slider to adjust layer transparency" width="100" height="20"/>
+							</mx:HBox>
+						</mx:Box>		
+						
+						<mx:Box width="100%">						
+							<mx:CheckBox label="Small Grant Areas" id="chk_LyrSmallGrants"  fontSize="11"/>
+							<mx:HBox height="100%" width="100%" includeInLayout="{chk_LyrSmallGrants.selected}" visible="{chk_LyrSmallGrants.selected}" verticalAlign="middle" horizontalAlign="center">
+								<mx:Image source="oitt_images/sga_thumb.png" alpha="{alpha_LyrSmallGrants.value}"/>
+								<mx:HSlider id="alpha_LyrSmallGrants" maximum="1" minimum="0" value=".9" liveDragging="true" labels="['Off','Full']" tickValues=".2" toolTip="Move slider to adjust layer transparency" width="100" height="20"/>
+							</mx:HBox>
+						</mx:Box>		
+						
+						<mx:Box width="100%">						
+							<mx:CheckBox label="OWEB Regions" id="chk_LyrRegions"  fontSize="11"/>
+							<mx:HBox height="100%" width="100%" includeInLayout="{chk_LyrRegions.selected}" visible="{chk_LyrRegions.selected}" verticalAlign="middle" horizontalAlign="center">
+								<mx:Image source="oitt_images/regions_thumb.png" alpha="{alpha_LyrRegions.value}"/>
+								<mx:HSlider id="alpha_LyrRegions" maximum="1" minimum="0" value=".9" liveDragging="true" labels="['Off','Full']" tickValues=".2" toolTip="Move slider to adjust layer transparency" width="100" height="20"/>
+							</mx:HBox>
+						</mx:Box>		
+					</mx:VBox>
+				</mx:Canvas>	
+			</mx:VBox>		
+			
+		<!-- Left Panel:  Filter Data-->
+		<mx:VBox id="mapFilterParent" paddingBottom="10" borderStyle="none" width="200" horizontalScrollPolicy="off">
+			<mx:Button id="mapFilterButton" label="Filter" fontSize="12" width="175" icon="@Embed(source='oitt_images/filter.png')"
+				toggle="true" click="mapLayersButton.selected=false;projSearchButton.selected=false;" height="30" labelPlacement="right" textAlign="left"/>
+			<mx:Canvas id="mapFilterBox" height="100%" visible="true" includeInLayout="true" cornerRadius="10" borderStyle="solid" borderColor="#C5C5C5">			
+    			<mx:VBox height="100%" width="100%" paddingLeft="5" backgroundColor="#FFFFFF" backgroundAlpha="0.8" borderColor="#CCCCCC" cornerRadius="5" borderStyle="solid" 
+    				includeInLayout="{mapFilterButton.selected}" visible="{mapFilterButton.selected}" paddingBottom="5" paddingRight="5" paddingTop="5" verticalGap="4">
+    				<mx:HBox width="100%" backgroundColor="#B6CFE1">
+    					<mx:CheckBox label="By Grant Type" id="chk_project" click="{doFindProjType();chk_county.selected=false;chk_Watershed.selected=false;chk_distHouse.selected=false;chk_distSenate.selected=false}" fontSize="11"/>
+    				</mx:HBox>
+    				<mx:ComboBox id="dd_ProjectType" includeInLayout="{chk_project.selected}" visible="{chk_project.selected}" change="doFindProjType();">
+    					<mx:ArrayCollection>
+    					<fx:String>Acquisition</fx:String>
+    					<fx:String>Assessment</fx:String>
+    					<fx:String>Council Support</fx:String>
+    					<fx:String>Education</fx:String>
+    					<fx:String>Monitoring</fx:String>	
+						<fx:String>Outreach</fx:String>
+    					<fx:String>Research</fx:String>
+    					<fx:String>Restoration</fx:String>
+    					<fx:String>Technical Assistance</fx:String>
+    					</mx:ArrayCollection>
+    				</mx:ComboBox>
+    				
+    				<mx:VBox width="100%">
+    					<mx:HBox width="100%" backgroundColor="#B6CFE1">
+    						<mx:CheckBox label="By Watershed" id="chk_Watershed" click="{filterByHUC();chk_county.selected=false;chk_distHouse.selected=false;chk_distSenate.selected=false}" fontSize="11" selected="true"/>
+    					</mx:HBox>
+    					<mx:TextArea text="Click on map to filter by watershed" visible="{chk_Watershed.selected}" includeInLayout="{chk_Watershed.selected}" width="183"/>
+    				</mx:VBox>
+    				        				
+    				<mx:HBox width="100%">
+    					<mx:HBox width="100%" backgroundColor="#B6CFE1">
+    						<mx:CheckBox label="By County" id="chk_county" click="{filterByCounty();chk_project.selected=false;chk_Watershed.selected=false;chk_distHouse.selected=false;chk_distSenate.selected=false}" fontSize="11"/>
+    					</mx:HBox>
+    				</mx:HBox>
+    				<mx:ComboBox id="dd_County" visible="{chk_county.selected}" includeInLayout="{chk_county.selected}" change="filterByCounty();">
+    					<mx:ArrayCollection>
+    						<fx:String>All</fx:String>
+    						<fx:String>Baker</fx:String>
+    						<fx:String>Benton</fx:String>
+    						<fx:String>Clackamas</fx:String>
+    						<fx:String>Clatsop</fx:String>
+    						<fx:String>Columbia</fx:String>
+    						<fx:String>Coos</fx:String>
+    						<fx:String>Crook</fx:String>
+    						<fx:String>Curry</fx:String>
+    						<fx:String>Deschutes</fx:String>
+    						<fx:String>Douglas</fx:String>
+    						<fx:String>Gilliam</fx:String>
+    						<fx:String>Grant</fx:String>
+    						<fx:String>Harney</fx:String>
+    						<fx:String>Hood River</fx:String>
+    						<fx:String>Jackson</fx:String>
+    						<fx:String>Jefferson</fx:String>
+    						<fx:String>Josephine</fx:String>
+    						<fx:String>Klamath</fx:String>
+    						<fx:String>Lake</fx:String>
+    						<fx:String>Lane</fx:String>
+    						<fx:String>Lincoln</fx:String>
+    						<fx:String>Linn</fx:String>
+    						<fx:String>Malheur</fx:String>
+    						<fx:String>Marion</fx:String>
+    						<fx:String>Morrow</fx:String>
+    						<fx:String>Multnomah</fx:String>
+    						<fx:String>Polk</fx:String>
+    						<fx:String>Sherman</fx:String>
+    						<fx:String>Tillamook</fx:String>
+    						<fx:String>Umatilla</fx:String>
+    						<fx:String>Union</fx:String>
+    						<fx:String>Wallowa</fx:String>
+    						<fx:String>Wasco</fx:String>
+    						<fx:String>Washington</fx:String>
+    						<fx:String>Wheeler</fx:String>
+    						<fx:String>Yamhill</fx:String>
+    					</mx:ArrayCollection>
+    				</mx:ComboBox>
+    				<mx:TextArea text="Click on map to filter by county or select from dropdown list above" visible="{chk_county.selected}" includeInLayout="{chk_county.selected}" width="183" height="60"/>
+    				
+					<mx:VBox width="100%">
+						<mx:HBox width="100%" backgroundColor="#B6CFE1">
+							<mx:CheckBox label="By House District" id="chk_distHouse" click="{filterByHouseDistrict();chk_county.selected=false;chk_project.selected=false;chk_Watershed.selected=false;chk_distSenate.selected=false}" fontSize="11" selected="false"/>
+						</mx:HBox>
+						<mx:ComboBox id="dd_HouseDistricts" visible="{chk_distHouse.selected}" includeInLayout="{chk_distHouse.selected}" change="filterByHouseDistrict();">
+							<mx:ArrayCollection>
+								<fx:String>ALL</fx:String>
+								<fx:String>1</fx:String>
+								<fx:String>2</fx:String>
+								<fx:String>3</fx:String>
+								<fx:String>4</fx:String>
+								<fx:String>5</fx:String>
+								<fx:String>6</fx:String>
+								<fx:String>7</fx:String>
+								<fx:String>8</fx:String>
+								<fx:String>9</fx:String>
+								<fx:String>10</fx:String>
+								<fx:String>11</fx:String>
+								<fx:String>12</fx:String>
+								<fx:String>13</fx:String>
+								<fx:String>14</fx:String>
+								<fx:String>15</fx:String>
+								<fx:String>16</fx:String>
+								<fx:String>17</fx:String>
+								<fx:String>18</fx:String>
+								<fx:String>19</fx:String>
+								<fx:String>20</fx:String>
+								<fx:String>21</fx:String>
+								<fx:String>22</fx:String>
+								<fx:String>23</fx:String>
+								<fx:String>24</fx:String>
+								<fx:String>25</fx:String>
+								<fx:String>26</fx:String>
+								<fx:String>27</fx:String>
+								<fx:String>28</fx:String>
+								<fx:String>29</fx:String>
+								<fx:String>30</fx:String>
+								<fx:String>31</fx:String>
+								<fx:String>32</fx:String>
+								<fx:String>33</fx:String>
+								<fx:String>34</fx:String>
+								<fx:String>35</fx:String>
+								<fx:String>36</fx:String>
+								<fx:String>37</fx:String>
+								<fx:String>38</fx:String>
+								<fx:String>39</fx:String>
+								<fx:String>40</fx:String>
+								<fx:String>41</fx:String>
+								<fx:String>42</fx:String>
+								<fx:String>43</fx:String>
+								<fx:String>44</fx:String>
+								<fx:String>45</fx:String>
+								<fx:String>46</fx:String>
+								<fx:String>47</fx:String>
+								<fx:String>48</fx:String>
+								<fx:String>49</fx:String>
+								<fx:String>50</fx:String>
+								<fx:String>51</fx:String>
+								<fx:String>52</fx:String>
+								<fx:String>53</fx:String>
+								<fx:String>54</fx:String>
+								<fx:String>55</fx:String>
+								<fx:String>56</fx:String>
+								<fx:String>57</fx:String>
+								<fx:String>58</fx:String>
+								<fx:String>59</fx:String>
+								<fx:String>60</fx:String>
+							</mx:ArrayCollection>
+						</mx:ComboBox>
+						<mx:TextArea text="Click on map to filter by house district" visible="{chk_distHouse.selected}" includeInLayout="{chk_distHouse.selected}" width="183"/>
+					</mx:VBox>
+					
+					<mx:VBox width="100%">
+						<mx:HBox width="100%" backgroundColor="#B6CFE1">
+							<mx:CheckBox label="By Senate District" id="chk_distSenate" click="{filterBySenateDistrict();chk_LyrSDBound.selected=true;chk_county.selected=false;chk_project.selected=false;chk_Watershed.selected=false;chk_distHouse.selected=false}" fontSize="11" selected="false"/>
+						</mx:HBox>
+						<mx:ComboBox id="dd_SenateDistricts" visible="{chk_distSenate.selected}" includeInLayout="{chk_distSenate.selected}" change="filterBySenateDistrict();">
+							<mx:ArrayCollection>
+								<fx:String>ALL</fx:String>
+								<fx:String>1</fx:String>
+								<fx:String>2</fx:String>
+								<fx:String>3</fx:String>
+								<fx:String>4</fx:String>
+								<fx:String>5</fx:String>
+								<fx:String>6</fx:String>
+								<fx:String>7</fx:String>
+								<fx:String>8</fx:String>
+								<fx:String>9</fx:String>
+								<fx:String>10</fx:String>
+								<fx:String>11</fx:String>
+								<fx:String>12</fx:String>
+								<fx:String>13</fx:String>
+								<fx:String>14</fx:String>
+								<fx:String>15</fx:String>
+								<fx:String>16</fx:String>
+								<fx:String>17</fx:String>
+								<fx:String>18</fx:String>
+								<fx:String>19</fx:String>
+								<fx:String>20</fx:String>
+								<fx:String>21</fx:String>
+								<fx:String>22</fx:String>
+								<fx:String>23</fx:String>
+								<fx:String>24</fx:String>
+								<fx:String>25</fx:String>
+								<fx:String>26</fx:String>
+								<fx:String>27</fx:String>
+								<fx:String>28</fx:String>
+								<fx:String>29</fx:String>
+								<fx:String>30</fx:String>
+							</mx:ArrayCollection>
+						</mx:ComboBox>
+						<mx:TextArea text="Click on map to filter by senate district" visible="{chk_distSenate.selected}" includeInLayout="{chk_distSenate.selected}" width="183"/>
+					</mx:VBox>
+					
+    				<mx:HBox width="100%" backgroundColor="#B6CFE1">
+    					<mx:CheckBox label="By Year" id="chk_FilterYear" width="183" change="updateYearFilter();" fontSize="11"/>
+    				</mx:HBox>
+					
+					<mx:HSlider id="sliderYear" maximum="2012" minimum="2000" labels="['2000','2005','2012']" 
+						tickInterval="1" snapInterval="1" liveDragging="true"
+						width="100%" allowTrackClick="true" showDataTip="true" dataTipPrecision="0"
+						visible="{chk_FilterYear.selected}" includeInLayout="{chk_FilterYear.selected}">
+						<mx:change>updateYearFilter();</mx:change>
+					</mx:HSlider>
+    				
+    				<mx:HBox width="100%" backgroundColor="#B6CFE1">
+    					<mx:Button label="Clear Filter" id="cmd_clearFilter" click="clearSearch();" fontSize="11"/>
+    				</mx:HBox>
+    			</mx:VBox>							
+			</mx:Canvas>
+		</mx:VBox>
+	
+		<!-- Left Panel:  Search for Projects-->
+		<mx:VBox id="projSearchParent">
+			<mx:Button id="projSearchButton" label="Search" fontSize="12" width="175" icon="@Embed(source='oitt_images/search.png')"
+				toggle="true" height="30" textAlign="left" click="mapLayersButton.selected=false;mapFilterButton.selected=false;"/>
+			<mx:Canvas id="popupSearchBox" width="230"  visible="{projSearchButton.selected}" includeInLayout="{projSearchButton.selected}" 
+					cornerRadius="10" borderStyle="solid" borderColor="#C5C5C5">
+				<mx:VBox width="100%" height="180" horizontalAlign="center" paddingLeft="5"
+					backgroundColor="#FFFFFF" backgroundAlpha=".8" borderColor="#CCCCCC" cornerRadius="5" borderStyle="solid" paddingBottom="5" paddingRight="5" paddingTop="5">
+					<mx:TabNavigator height="100%" width="95%" paddingLeft="2">
+						<mx:Canvas label="Project" horizontalScrollPolicy="off">
+							
+							<mx:VBox height="125">
+								<mx:RadioButtonGroup id="searchSelect"/>
+								<mx:HBox width="100%">
+									<mx:RadioButton label="Name" groupName="searchSelect" id="select_Name" selected="true" enabled="true"/>
+									<mx:RadioButton label="Application #" groupName="searchSelect" id="select_AppNbr" enabled="true"/>
+								</mx:HBox>
+								<mx:Text text="Enter the project's name{'\n'}(all or part):" fontWeight="bold" visible="{select_Name.selected}" includeInLayout="{select_Name.selected}"/>
+								<mx:Text text="Enter the Application Number{'\n'}(e.g., '200-095')" fontWeight="bold" includeInLayout="{select_AppNbr.selected}" visible="{select_AppNbr.selected}"/>
+								<mx:TextInput id="fText" paddingLeft="5" enter="doFindProjName();"/>
+								<mx:HBox horizontalAlign="center">
+									<mx:Button label="Search" id="cmd_SubmitTextSearch" click="doFindProjName()"/>
+									<mx:Button label="Clear" id="cmd_ClearSearch" click="{fText.text=''} clearSearch();"/>
+								</mx:HBox>
+							</mx:VBox>
+						</mx:Canvas>						
+						<mx:Canvas label="Address" width="100%" height="100%" verticalScrollPolicy="off" horizontalScrollPolicy="off" >
+			        		<mx:VBox width="100%">
+								<s:TextInput id="onelineaddress"
+											 width="95%"
+											 enter="geocode()"
+											 text="775 Summer Street NE, Salem, OR"/>
+								<s:Button click="geocode()" label="Find Address"/>
+								<s:Button label="Clear" id="cmd_ClearAddress" click="{onelineaddress.text='';}; myAddressPoint.clear();"/>
+
+        		  	        	<mx:Text id="myInfo" color="#0030FF" textAlign="left"/>			        			
+							</mx:VBox>
+						</mx:Canvas>
+					</mx:TabNavigator>		
+				</mx:VBox>
+			</mx:Canvas>	
+		</mx:VBox>
+	</mx:VBox>
+	
+<!-- Notification Boxes -->
+        <mx:HBox id="notificationBox" 
+        	height="30" width="400" backgroundColor="#FFFFFF" backgroundAlpha=".9" 
+        	borderStyle="solid" borderColor="#0C97F8" cornerRadius="5" 
+        	verticalAlign="middle" horizontalAlign="center" bottom="{5+statPanel.height}" left="0"
+        	click="{notificationBox.visible=false}">
+        	<mx:Text id="NotificationText"  fontSize="10" width="100%" textAlign="center"/>
+        </mx:HBox>
+        
+		<mx:HBox bottom="{5+statPanel.height}" right="5"  backgroundColor="#FFFFFF" backgroundAlpha="0.7" visible="{info.text.length>0}">
+			<mx:Text id="info"/>
+			<mx:Button id="export" label="Export Table" click="exportToXLS();" height="20" visible="{info.text.length>0}" toolTip="Export selected records to table (CSV format)"/>
+			<mx:Button id="export_about" click="Alert.show('The selected OWEB records are exported using the CSV, or Comma-seperated values format. CSV is a widely supported simple file format, which can be opened using common spreadsheet programs (Microsoft Excel, iWork Numbers) as well as with text editors.'); " icon="@Embed(source='oitt_images/question_mrk.gif')" height="20" visible="{info.text.length>0}" toolTip="Click for information About export (CSV) format"/>
+		</mx:HBox>
+
+	<!-- Basemap selection -->			
+	<mx:TileList id="bb" height="100" width="380" verticalScrollPolicy="off"
+        selectedIndex="3" visible="false" maxColumns="3" rowHeight="100" columnWidth="125" itemClick="{button_basemap.emphasized=false;bb.visible = false;}"  borderStyle="solid" top="38"  alpha=".8" right="5">
+        <mx:dataProvider>	
+            <fx:Array>
+                <fx:Object label="Imagery" icon="{imagery}"/>
+                <fx:Object label="Streetmap" icon="{streetmap}"/>
+                <fx:Object label="Topo Map" icon="{topo}"/>
+            </fx:Array>
+        </mx:dataProvider>
+    </mx:TileList>
+    
+
+	</mx:Canvas>
+	
+	<!--pop-up box-->
+
+<mx:Canvas id="popupBox" width="100%" height="100%">
+	<mx:Box id="screenPanel" alpha=".7" color="0x423B3B" backgroundColor="#75809B" width="100%" height="100%"/>
+	<s:HGroup 
+			  horizontalAlign="center" verticalAlign="middle" click="popupBox.visible=false; popupBox.includeInLayout=false; fadeEffect.play();" horizontalCenter="0" verticalCenter="0" width="100%" height="100%">
+		
+		<mx:HBox id="splashBox" 
+				height="425" width="650" backgroundColor="#FFFFFF" backgroundAlpha="0.9" 
+				 borderStyle="solid" borderColor="#0C97F8" cornerRadius="10" 
+				 verticalAlign="middle" horizontalAlign="center" horizontalCenter="0"
+				 verticalCenter="0" paddingBottom="10" paddingLeft="10" paddingRight="10" paddingTop="10"  horizontalScrollPolicy="off" verticalScrollPolicy="off">
+			
+			<mx:VBox width="100%" height="100%" verticalAlign="middle">
+				<mx:Text fontSize="12" width="100%">
+					<mx:htmlText>
+						<![CDATA[<img src='oitt_images/OWEB_sm.png' align='right'/>
+<b><font size="16">The OWEB Investment Tracker</font></b><br> is a new tool  that allows you to explore how OWEB grant funding is distributed across the state.  
+						<br>To <b>use this tool</b>, click on the map to view projects in a selected watershed.  
+						<br><img src='oitt_images/mapLayers.png' width='30' height='20'/>Use the <b>Map Layers</b> panel on the left to view projects in a selected watershed.
+						<br><img src='oitt_images/filter.png' width='30' height='20'/>You can <b>Filter</b> OWEB grants by  criteria  such as: Watershed, Grant Type, Year Funded, or County from the menu on the left.
+						<br><img src='oitt_images/search.png' width='30' height='30'/>Use the <b>Search</b> tool to find projects near your address, or by a keyword. 
+						<br><br>The tool provides <i>basic</i> information on grants in progress and those that have been completed (e.g. project name, start year, OWEB funding amount).  The <a href='http://oregonexplorer.info/RestorationTool/' target='_blank'><font color="#4B00FF"><u>Oregon Watershed Restoration Inventory</u></font></a> provides more <i>detailed</i> information on completed restoration projects. <br>
+This tool will be adjusted and enhanced over time so your comments are welcome.  Send comments to <a href='mailto:ashley.seim@state.or.us'><font color="#4B00FF"><u>Ashley Seim</u></font></a>.
+						
+	Version 3.0															Updated December, 2012
+						
+						
+						]]>
+					</mx:htmlText>
+				</mx:Text>
+				
+			</mx:VBox>
+			
+		</mx:HBox>
+	</s:HGroup>	
+</mx:Canvas>
+
+</s:Application>

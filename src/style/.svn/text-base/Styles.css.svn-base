@@ -1,0 +1,183 @@
+
+Application 
+{
+   backgroundColor: #43526C;
+   backgroundGradientColors: #ACC9E1, #43526C;
+   themeColor: #ACC9E1;
+   color: #000000;
+   paddingTop: 10px;
+   verticalGap: 15;
+   horizontalGap: 15;
+   horizontalAlign: center;
+}
+
+/* Used by NavigationStyling */
+.myMapStyle
+{
+    navigation-style-name: myNavigationStyle;
+}
+
+.myNavigationStyle
+{
+    left: NaN;
+    top: 6;
+    right: 6;
+    navigation-slider-style-name: myNavigationSlider;
+}
+.myNavigationSlider
+{
+    dataTipPlacement: "left";
+    showScaleInDataTip: false;
+    tickColor: #FFFFFF;
+    tickLength: 10;
+    tickOffset: 13;
+    tickThickness: 3;
+    borderColor: #FFFFFF;
+    themeColor: haloSilver;
+    invertThumbDirection:true;
+    showTrackHighlight:true;
+}
+/* end NavigationStyling */
+TextInput {
+  backgroundColor: #FFFFFF;	
+}
+
+
+.accHeader {
+    selectedFillColors: haloBlue, haloBlue;
+}
+
+.mypanelTitle {
+   color: #000000;
+   fontFamily: Verdana;
+   fontWeight: bold;
+   text-align: left;
+}
+
+.MainPanel {
+   layout: horizontal;
+   borderColor: #000000;
+   headerColors: #ACC9E1, #FFFFFF;
+   footerColors: #ACC9E1, #FFFFFF;
+   backgroundColor: #ACC9E1;
+   titleStyleName: "MainTitle";
+   width: 1000;
+   height: 700;  
+   borderStyle: solid;
+   cornerRadius: 20;
+   backgroundAlpha: .25;
+   borderAlpha: 1;
+   horizontalAlign: center;
+}
+
+.MainTitle {
+   color: #000000;
+   fontFamily: Verdana;
+   fontWeight: bold;
+   fontSize: 24pt;
+}
+
+.MapTitle {
+   color: #000000;
+   fontSize: 16pt;
+   fontFamily: Verdana;
+   fontWeight: bold;
+   text-align:center;
+}
+
+.StepPanel {
+   borderColor: #000000;
+   headerColors: #ACC9E1, #FFFFFF;
+   footerColors: #ACC9E1, #FFFFFF;
+   backgroundColor: #FFFFFF;
+   titleStyleName: "stepTitle";
+   text-align: left;
+}
+
+.stepTitle {
+   color: #000000;
+   fontsize: 12pt;
+   fontFamily: Verdana;
+   fontWeight: bold;
+}
+
+ToolTip { 
+	fontFamily: "Arial"; 
+	fontSize: 12; 
+	fontStyle: "bold";
+	color: #FFFFFF;
+	background-alpha: .8;
+	background-color: #778899;
+	radius: 10;
+ }
+
+InfoWindowRollOverContent
+{
+    backgroundColor: #FFFFFF;
+    backgroundAlpha: 0.4;
+    font-style: normal;
+    font-weight: normal;
+}
+
+InfoWindow {
+    padding-left : 5;
+    padding-right : 5;
+    padding-top : 5;
+    padding-bottom : 5;
+    tip-width : 3;
+    tip-length : 3;
+    background-color : #600709;
+    background-alpha : 0.6;
+}
+
+
+/* Following code is for the resizable panels */
+
+Panel {
+	headerHeight: 26;
+	roundedBottomCorners: true;
+	borderThicknessTop: 0;
+	borderThicknessBottom: 3;
+	borderThicknessLeft: 3;
+	borderThicknessRight: 3;
+	titleStyleName: "mypanelTitle";
+	horizontal-align: center;
+}
+.mypanelTitle {
+	fontFamily: Arial;
+	fontSize: 12;
+	fontWeight: bold;
+	horizontal-align: center;
+	color: #000000;
+	background-color: #01445F;
+}
+.closeBtn {
+	upSkin:        Embed('images/closeButton.png');
+	overSkin:      Embed('images/closeButton.png');
+	downSkin:      Embed('images/closeButton.png');
+	disabledSkin:  Embed('images/closeButton.png');
+}
+.increaseBtn {
+	upSkin:        Embed('images/increaseButton.png');
+	overSkin:      Embed('images/increaseButton.png');
+	downSkin:      Embed('images/increaseButton.png');
+	disabledSkin:  Embed('images/increaseButton.png');
+}
+.decreaseBtn {
+	upSkin:        Embed('images/decreaseButton.png');
+	overSkin:      Embed('images/decreaseButton.png');
+	downSkin:      Embed('images/decreaseButton.png');
+	disabledSkin:  Embed('images/decreaseButton.png');
+}
+.minBtn {
+	upSkin:        Embed('images/decreaseButton.png');
+	overSkin:      Embed('images/decreaseButton.png');
+	downSkin:      Embed('images/decreaseButton.png');
+	disabledSkin:  Embed('images/decreaseButton.png');
+}
+.resizeHndlr {
+	upSkin:        Embed('images/resizeHandler.png');
+	overSkin:      Embed('images/resizeHandler.png');
+	downSkin:      Embed('images/resizeHandler.png');
+	disabledSkin:  Embed('images/resizeHandler.png');
+}

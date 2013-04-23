@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<fxpProperties abbreviated="false" authoringTool="Flex Builder" compiles="true" parentProject="e4d79496-8848-4821-8320-698bb22d630f" projectUUID="e4d79496-8848-4821-8320-698bb22d630f" pureCatalystProject="false" sdkVersion="4.6.0" uuid="a12fc51c-6cf7-4051-944d-63102f2f1223" version="15">
+  <projects/>
+  <src/>
+  <swc>
+    <linked location="${DOCUMENTS}/_libraries/agslib-2.3.1-2011-04-26.swc" path="${DOCUMENTS}/_libraries/agslib-2.3.1-2011-04-26.swc" position="2" uuid="d2ab745d-ba96-4ebf-9cfb-57d9b3875d71"/>
+    <linked location="sdkPlaceHolder" path="sdkPlaceHolder" position="0" uuid="a12fc51c-6cf7-4051-944d-63102f2f1223"/>
+    <linked location="H:/Projects/MapApps/_libraries/agslib-3.0-2012-06-06.swc" path="/linked-swc/agslib-3.0-2012-06-06.swc" position="1" uuid="a12fc51c-6cf7-4051-944d-63102f2f1223"/>
+  </swc>
+  <misc/>
+  <theme/>
+  <mxmlFormattingPrefs groupAttributesByState="true" maxLineWidth="100" mxmlAlignAttributes="true" mxmlAttributeOrder="id,userLabel,includeIn,excludeFrom,visible,x,y,z,left,right,top,bottom,width,height,minWidth,minHeight,maxWidth,maxHeight,label" mxmlKeepAttributeValuesOrganized="true"/>
+</fxpProperties>
