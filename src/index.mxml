@@ -877,7 +877,7 @@
 				<mx:Text fontSize="12" width="100%">
 					<mx:htmlText>
 						<![CDATA[<img src='oitt_images/OWEB_sm.png' align='right'/>
-<b><font size="16">The OWEB Investment Tracker</font></b><br> is a new tool  that allows you to explore how OWEB grant funding is distributed across the state.  
+<b><font size="16">The OWEB Investment Tracker</font></b><br> is a new tool that allows you to explore how OWEB grant funding is distributed across the state.  
 						<br>To <b>use this tool</b>, click on the map to view projects in a selected watershed.  
 						<br><img src='oitt_images/mapLayers.png' width='30' height='20'/>Use the <b>Map Layers</b> panel on the left to view projects in a selected watershed.
 						<br><img src='oitt_images/filter.png' width='30' height='20'/>You can <b>Filter</b> OWEB grants by  criteria  such as: Watershed, Grant Type, Year Funded, or County from the menu on the left.
